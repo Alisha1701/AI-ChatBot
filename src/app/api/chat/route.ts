@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     }));
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: {
@@ -52,8 +52,16 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error("Gemini API error:", errorData);
+      
+      let errorMessage = "Failed to get response from AI. Please try again.";
+      if (response.status === 429) {
+        errorMessage = "API quota exceeded. Please wait a moment and try again, or use a different API key.";
+      } else if (response.status === 403) {
+        errorMessage = "API key is invalid or lacks permissions. Please check your GOOGLE_API_KEY.";
+      }
+      
       return NextResponse.json(
-        { error: "Failed to get response from AI. Please try again." },
+        { error: errorMessage },
         { status: response.status }
       );
     }
